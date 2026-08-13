@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spec E46 Tire PSI Guide</title>
+<style>
+  :root {
+    --bg: #0f1420;
+    --card: #1a2233;
+    --accent: #4f8cff;
+    --text: #f5f6f8;
+    --muted: #9aa4b2;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(160deg, var(--bg), #1c2536);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  .card {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 32px 28px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+  h1 {
+    font-size: 20px;
+    margin: 0 0 2px;
+    text-align: center;
+  }
+  .subtitle {
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+  select#tireSelect {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: none;
+    background: #232c40;
+    color: var(--text);
+    font-size: 14px;
+    margin-top: 6px;
+    margin-bottom: 20px;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .tire-info {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: -14px;
+    margin-bottom: 18px;
+    line-height: 1.5;
+  }
+  label {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  input[type="number"] {
+    width: 100%;
+    font-size: 32px;
+    font-weight: 700;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: none;
+    background: #232c40;
+    color: var(--text);
+    margin-top: 6px;
+    margin-bottom: 20px;
+  }
+  input[type="number"]:focus {
+    outline: 2px solid var(--accent);
+  }
+  .result-box {
+    background: #101828;
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .weather-actions {
+    display: flex;
+    gap: 10px;
+    margin: 10px 0 18px;
+  }
+  .weather-actions button {
+    flex: 1;
+    border: 1px solid #3a4560;
+    border-radius: 10px;
+    background: #232c40;
+    color: var(--text);
+    padding: 10px 12px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .weather-status {
+    min-height: 18px;
+    margin-top: -8px;
+    margin-bottom: 16px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .result-label {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .result-value {
+    font-size: 48px;
+    font-weight: 800;
+    color: var(--accent);
+    margin-top: 6px;
+  }
+  .refs {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .refs button {
+    background: none;
+    border: 1px solid #3a4560;
+    color: var(--text);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  .refs button:hover { background: #232c40; }
+  .settings {
+    display: none;
+    margin-top: 14px;
+    border-top: 1px solid #2a3350;
+    padding-top: 14px;
+  }
+  .settings.open { display: block; }
+  .settings-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .settings-row div { flex: 1; }
+  .settings-row input {
+    width: 100%;
+    padding: 8px;
+    border-radius: 8px;
+    border: none;
+    background: #232c40;
+    color: var(--text);
+    font-size: 14px;
+  }
+  .settings-row label {
+    display: block;
+    margin-bottom: 4px;
+  }
+  footer {
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>Spec E46 Tire PSI Guide</h1>
+  <div class="subtitle">Enter ambient temperature to get a recommendation</div>
+
+  <label for="tireSelect">Tire Model</label>
+  <select id="tireSelect">
+    <option value="custom">Custom (manual calibration)</option>
+    <option value="toyo_proxes_r">Toyo Proxes R</option>
+    <option value="toyo_ra1">Toyo Proxes RA1</option>
+    <option value="hoosier_r7">Hoosier R7</option>
+    <option value="yokohama_av52">Yokohama AV52</option>
+  </select>
+  <div class="tire-info" id="tireInfo">Select a tire to load manufacturer-guideline reference pressures, or use Custom to calibrate your own.</div>
+
+  <label for="temp">Ambient Temperature (°F)</label>
+  <input type="number" id="temp" value="70" step="1">
+
+  <div class="weather-actions">
+    <button id="useLocationBtn" type="button">Use Current Location</button>
+    <button id="refreshWeatherBtn" type="button">Refresh Weather</button>
+  </div>
+  <div class="weather-status" id="weatherStatus">Manual entry mode.</div>
+
+  <div class="result-box">
+    <div class="result-label">Recommended Pressure</div>
+    <div class="result-value" id="result">-- psi</div>
+  </div>
+
+  <div class="refs">
+    Hot: <span id="hotRefDisplay">210°F @ 33 psi</span><br>
+    Cold: <span id="coldRefDisplay">50°F @ 21 psi</span><br>
+    Calculated via Gay-Lussac's Law (ideal gas law)
+    <button id="toggleSettings">Calibrate reference points</button>
+  </div>
+
+  <div class="settings" id="settings">
+    <div class="settings-row">
+      <div><label>Hot Temp (°F)</label><input type="number" id="hotTemp" value="210"></div>
+      <div><label>Hot PSI</label><input type="number" id="hotPSI" value="33"></div>
+    </div>
+    <div class="settings-row">
+      <div><label>Cold Temp (°F)</label><input type="number" id="coldTemp" value="50"></div>
+      <div><label>Cold PSI</label><input type="number" id="coldPSI" value="21"></div>
+    </div>
+  </div>
+
+  <footer>Built for Spec E46 club racing tire management</footer>
+</div>
+
+<script>
+  const tempInput = document.getElementById('temp');
+  const tireSelect = document.getElementById('tireSelect');
+  const tireInfo = document.getElementById('tireInfo');
+  const resultEl = document.getElementById('result');
+  const hotTemp = document.getElementById('hotTemp');
+  const hotPSI = document.getElementById('hotPSI');
+  const coldTemp = document.getElementById('coldTemp');
+  const coldPSI = document.getElementById('coldPSI');
+  const hotRefDisplay = document.getElementById('hotRefDisplay');
+  const coldRefDisplay = document.getElementById('coldRefDisplay');
+  const toggleBtn = document.getElementById('toggleSettings');
+  const settingsPanel = document.getElementById('settings');
+  const useLocationBtn = document.getElementById('useLocationBtn');
+  const refreshWeatherBtn = document.getElementById('refreshWeatherBtn');
+  const weatherStatus = document.getElementById('weatherStatus');
+
+  const STORAGE_KEY = 'tirePressureRefs';
+  const TIRE_PRESETS = {
+    custom: {
+      name: 'Custom',
+      hotTemp: 210,
+      hotPSI: 33,
+      coldTemp: 50,
+      coldPSI: 21,
+      info: 'Manual calibration using your own session data.'
+    },
+    toyo_proxes_r: {
+      name: 'Toyo Proxes R',
+      hotTemp: 210,
+      hotPSI: 32,
+      coldTemp: 50,
+      coldPSI: 21,
+      info: 'User-defined reference: 50°F @ 21 psi → 210°F @ 32 psi.'
+    },
+    toyo_ra1: {
+      name: 'Toyo Proxes RA1',
+      hotTemp: 210,
+      hotPSI: 32,
+      coldTemp: 50,
+      coldPSI: 21,
+      info: 'User-defined reference: 50°F @ 21 psi → 210°F @ 32 psi.'
+    },
+    hoosier_r7: {
+      name: 'Hoosier R7',
+      hotTemp: 210,
+      hotPSI: 32,
+      coldTemp: 50,
+      coldPSI: 21,
+      info: 'User-defined reference: 50°F @ 21 psi → 210°F @ 32 psi.'
+    },
+    yokohama_av52: {
+      name: 'Yokohama AV52',
+      hotTemp: 210,
+      hotPSI: 32,
+      coldTemp: 50,
+      coldPSI: 21,
+      info: 'User-defined reference: 50°F @ 21 psi → 210°F @ 32 psi.'
+    }
+  };
+
+  let lastCoords = null;
+
+  function loadRefs() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return;
+    const r = JSON.parse(saved);
+    tireSelect.value = r.tire || 'custom';
+    hotTemp.value = r.hotTemp;
+    hotPSI.value = r.hotPSI;
+    coldTemp.value = r.coldTemp;
+    coldPSI.value = r.coldPSI;
+  }
+
+  function saveRefs() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      tire: tireSelect.value,
+      hotTemp: hotTemp.value,
+      hotPSI: hotPSI.value,
+      coldTemp: coldTemp.value,
+      coldPSI: coldPSI.value
+    }));
+  }
+
+  function applyPreset(key) {
+    const preset = TIRE_PRESETS[key];
+    if (!preset) return;
+    hotTemp.value = preset.hotTemp;
+    hotPSI.value = preset.hotPSI;
+    coldTemp.value = preset.coldTemp;
+    coldPSI.value = preset.coldPSI;
+    tireInfo.textContent = preset.info;
+    calculate();
+  }
+
+  function syncTireInfo() {
+    const preset = TIRE_PRESETS[tireSelect.value] || TIRE_PRESETS.custom;
+    tireInfo.textContent = preset.info;
+  }
+
+  function setWeatherStatus(message) {
+    weatherStatus.textContent = message;
+  }
+
+  function calculate() {
+    const T = parseFloat(tempInput.value);
+    const hT = parseFloat(hotTemp.value);
+    const hP = parseFloat(hotPSI.value);
+
+    if (isNaN(T) || isNaN(hT) || isNaN(hP)) {
+      resultEl.textContent = '-- psi';
+      return;
+    }
+
+    const Tr1 = hT + 459.67;
+    const Pa1 = hP + 14.7;
+    const TrT = T + 459.67;
+    const PaT = Pa1 * (TrT / Tr1);
+    const psi = PaT - 14.7;
+
+    resultEl.textContent = psi.toFixed(1) + ' psi';
+    hotRefDisplay.textContent = `${hT}°F @ ${hP} psi`;
+    coldRefDisplay.textContent = `${coldTemp.value}°F @ ${coldPSI.value} psi`;
+    saveRefs();
+  }
+
+  async function fetchWeather(lat, lon) {
+    setWeatherStatus('Fetching live temperature…');
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}&current=temperature_2m&temperature_unit=fahrenheit`;
+
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Weather lookup failed');
+      const data = await response.json();
+      const temp = data?.current?.temperature_2m;
+      if (typeof temp !== 'number') throw new Error('Temperature unavailable');
+
+      tempInput.value = Math.round(temp);
+      calculate();
+      setWeatherStatus(`Live weather loaded: ${temp.toFixed(1)}°F`);
+    } catch (error) {
+      setWeatherStatus('Could not fetch live weather. You can still enter temp manually.');
+    }
+  }
+
+  function requestLocationAndWeather() {
+    if (!navigator.geolocation) {
+      setWeatherStatus('Geolocation is not supported in this browser.');
+      return;
+    }
+
+    setWeatherStatus('Requesting location permission…');
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        lastCoords = { latitude, longitude };
+        fetchWeather(latitude, longitude);
+      },
+      () => {
+        setWeatherStatus('Location permission denied. Manual entry mode active.');
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
+    );
+  }
+
+  toggleBtn.addEventListener('click', () => {
+    settingsPanel.classList.toggle('open');
+  });
+
+  useLocationBtn.addEventListener('click', requestLocationAndWeather);
+  refreshWeatherBtn.addEventListener('click', () => {
+    if (lastCoords) {
+      fetchWeather(lastCoords.latitude, lastCoords.longitude);
+    } else {
+      requestLocationAndWeather();
+    }
+  });
+
+  tireSelect.addEventListener('change', () => {
+    applyPreset(tireSelect.value);
+  });
+
+  [tempInput, hotTemp, hotPSI, coldTemp, coldPSI].forEach(el => {
+    el.addEventListener('input', calculate);
+  });
+
+  loadRefs();
+  if (!localStorage.getItem(STORAGE_KEY)) {
+    applyPreset('custom');
+  } else {
+    syncTireInfo();
+    calculate();
+  }
+</script>
+
+</body>
+</html>
